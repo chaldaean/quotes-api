@@ -1,7 +1,6 @@
 [versions]
 kotlin = "2.1.21"
 springBoot = "3.5.3"
-ktlint = "1.6.0"
 palantirDocker = "0.36.0"
 
 [plugins]
@@ -10,3 +9,4 @@ kotlinSpring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotli
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot"}
 springDependencyManagement = { id = "io.spring.dependency-management", version = "1.1.7"}
 palantirDocker = { id = "com.palantir.docker", version.ref = "palantirDocker"}
+gradleKtlint = { id = "org.jlleitschuh.gradle.ktlint", version = "13.0.0-rc.1"}

@@ -7,7 +7,5 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class HelloController {
     @GetMapping(value = ["/hello"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun sayHello(): String {
-        return "Hello with Spring Boot and Java!"
-    }
+    fun sayHello(): String = "Hello with Spring Boot and Java!"
 }
