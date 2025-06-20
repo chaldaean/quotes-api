@@ -1,8 +1,8 @@
 plugins {
 	id 'java'
-	id 'com.palantir.docker' version '0.36.0'
-	id 'org.springframework.boot' version '3.2.4'
-	id 'io.spring.dependency-management' version '1.1.4'
+	alias libs.plugins.palantirDocker
+	alias libs.plugins.springBoot
+	alias libs.plugins.springDependencyManagement
 }
 
 group = "tui.meta.challenge"
