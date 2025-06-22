@@ -8,5 +8,5 @@ echo -e "${BLUE}Cleaning and building the project..."
 echo -e "${BLUE}Building the Docker image..."
 ./gradlew docker
 
-echo -e "${BLUE}Stopping and removing existing Docker containers..."
+echo -e "${BLUE}Running Docker containers..."
 docker-compose -f ../deployment/docker-compose.yml up -d

@@ -3,5 +3,5 @@ spring:
     name: quotes
   data:
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/challenge}
+      uri: mongodb://host.docker.internal:27017/challenge
       auto-index-creation: true
