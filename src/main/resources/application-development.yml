@@ -1,0 +1,4 @@
+logging:
+  level:
+    root: INFO
+    tui.meta.challenge.quotes: TRACE

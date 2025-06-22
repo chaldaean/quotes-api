@@ -1,36 +1,53 @@
 plugins {
-	id 'java'
-	alias libs.plugins.jvm
-	alias libs.plugins.kotlinSpring
-	alias libs.plugins.springBoot
-	alias libs.plugins.springDependencyManagement
-	alias libs.plugins.palantirDocker
-	alias libs.plugins.gradleKtlint
+    id 'java'
+    alias libs.plugins.jvm
+    alias libs.plugins.kotlinSpring
+    alias libs.plugins.springBoot
+    alias libs.plugins.springDependencyManagement
+    alias libs.plugins.palantirDocker
+    alias libs.plugins.gradleKtlint
 }
 
 group = "tui.meta.challenge"
 version = "0.0.1-SNAPSHOT"
 
 kotlin {
-	jvmToolchain(17)
+    jvmToolchain(17)
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // === spring ===
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    // === others ===
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("io.github.oshai:kotlin-logging-jvm:${libs.versions.kotlinLogging.get()}")
+    // === testing ===
+    testImplementation("org.springframework.boot:spring-boot-starter-test") exclude(
+            group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    )
+
+    testImplementation("io.projectreactor:reactor-test")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:mongodb")
+    testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+    testImplementation("io.projectreactor.kotlin:reactor-kotlin-extensions:${libs.versions.reactorKExtensions.get()}")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("com.ninja-squad:springmockk:${libs.versions.springmockk.get()}") // for @MockkBean
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 docker {
-	name 'tui/meta-challenge'
-	copySpec.from("build").into("build")
-	noCache true
+    name 'tui/meta-challenge'
+    copySpec.from("build").into("build")
+    noCache true
 }
