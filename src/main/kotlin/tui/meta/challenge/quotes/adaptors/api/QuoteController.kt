@@ -37,7 +37,7 @@ class QuoteController(
     /**
      * Retrieves a single quote by its MongoDB `_id`.
      *
-     * @param id the unique identifier of the quote (MongoDB ObjectId).
+     * @param id the unique identifier of the quote (MongoDB Id).
      * @return the [Quote] document if found.
      * @throws NotFoundErrorCodeException if no quote with the specified ID exists.
      *
