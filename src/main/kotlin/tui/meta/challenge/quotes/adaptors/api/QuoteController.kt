@@ -1,18 +1,21 @@
 package tui.meta.challenge.quotes.adaptors.api
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.validation.constraints.NotBlank
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
+import org.bson.types.ObjectId
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import tui.meta.challenge.quotes.adaptors.api.dto.QuoteResponse
 import tui.meta.challenge.quotes.adaptors.api.exceptions.NotFoundErrorCodeException
 import tui.meta.challenge.quotes.adaptors.persistence.entity.Quote
 import tui.meta.challenge.quotes.service.QuoteService
-import tui.meta.challenge.quotes.service.dto.QuoteDto
 
 private val LOGGER = KotlinLogging.logger {}
 
@@ -48,13 +51,15 @@ class QuoteController(
      */
     @GetMapping("/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun getById(
-        @PathVariable id: String,
-    ): QuoteDto {
+        @PathVariable id: ObjectId,
+    ): QuoteResponse {
         LOGGER.trace { "Finding query by id $id" }
-        return service.findById(id).singleOrNull() ?: run {
-            LOGGER.debug { "Query not found for id $id" }
-            throw NotFoundErrorCodeException(id)
-        }
+        val quote =
+            service.findById(id.toString()).singleOrNull() ?: run {
+                LOGGER.debug { "Query not found for id $id" }
+                throw NotFoundErrorCodeException(id.toString())
+            }
+        return QuoteResponse(quote)
     }
 
     /**
@@ -70,10 +75,10 @@ class QuoteController(
      */
     @GetMapping(params = ["author"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getByAuthor(
-        @RequestParam author: String,
-    ): Flow<QuoteDto> {
+        @RequestParam @NotBlank author: String,
+    ): Flow<QuoteResponse> {
         LOGGER.trace { "Finding query by author $author" }
-        return service.findByAuthorIgnoreCase(author)
+        return service.findByAuthorIgnoreCase(author).map { QuoteResponse(it) }
     }
 
     /**
@@ -91,8 +96,8 @@ class QuoteController(
      * @return a [Flow] of all [Quote] records.
      */
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getAll(): Flow<QuoteDto> {
+    fun getAll(): Flow<QuoteResponse> {
         LOGGER.trace { "Finding all quotes" }
-        return service.findAll()
+        return service.findAll().map { QuoteResponse(it) }
     }
 }

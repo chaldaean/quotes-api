@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -68,129 +69,125 @@ class QuoteControllerIT {
         }
     }
 
-    // ------------------------------------------------------------------
-    // GET /quotes/{id}
-    // ------------------------------------------------------------------
-    @Test
-    fun `GET by id returns 200 and body`() {
-        runBlocking {
-            // given
-            val quote = repo.findAll().blockFirst()!!
+    @Nested
+    inner class GetById {
+        @Test
+        fun `GET by id returns 200 and body`() {
+            runBlocking {
+                val quote = repo.findAll().blockFirst()!!
 
-            // when
-            val response =
-                client
-                    .get()
-                    .uri("/quotes/${quote.id}")
-                    .accept(MediaType.APPLICATION_JSON)
-                    .exchange()
+                val response =
+                    client
+                        .get()
+                        .uri("/quotes/${quote.id}")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .exchange()
 
-            // then
-            response
-                .expectStatus()
-                .isOk
-                .expectBody()
-                .jsonPath("$.quoteAuthor")
-                .isEqualTo(quote.quoteAuthor)
-                .jsonPath("$.quoteText")
-                .isEqualTo(quote.quoteText)
+                response
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .jsonPath("$.quoteAuthor")
+                    .isEqualTo(quote.quoteAuthor)
+                    .jsonPath("$.quoteText")
+                    .isEqualTo(quote.quoteText)
+            }
+        }
+
+        @Test
+        fun `GET by id returns 404 for unknown id`() {
+            val response = client.get().uri("/quotes/${ObjectId()}").exchange()
+
+            response.expectStatus().isNotFound
+        }
+
+        @Test
+        fun `GET by id returns 400 for invalid ObjectId format`() {
+            val response = client.get().uri("/quotes/invalid-id").exchange()
+
+            response.expectStatus().isBadRequest
         }
     }
 
-    @Test
-    fun `GET by id returns 404 for unknown id`() {
-        // when
-        val response =
-            client
-                .get()
-                .uri("/quotes/${ObjectId()}")
-                .exchange()
+    @Nested
+    inner class GetByAuthor {
+        @Test
+        fun `GET by author is case insensitive`() {
+            val author = "oscar wilde"
 
-        // then
-        response.expectStatus().isNotFound
-    }
+            val response =
+                client
+                    .get()
+                    .uri {
+                        it.path("/quotes").queryParam("author", author).build()
+                    }.accept(MediaType.APPLICATION_JSON)
+                    .exchange()
 
-    // ------------------------------------------------------------------
-    // GET /quotes?author=
-    // ------------------------------------------------------------------
-    @Test
-    fun `GET by author is case insensitive`() {
-        // given
-        val author = "oscar wilde"
-
-        // when
-        val response =
-            client
-                .get()
-                .uri { it.path("/quotes").queryParam("author", author).build() }
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-
-        // then
-        response
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .jsonPath("$.length()")
-            .isEqualTo(1)
-            .jsonPath("$[0].quoteAuthor")
-            .isEqualTo("Oscar Wilde")
-    }
-
-    @Test
-    fun `GET by author returns empty array when none match`() {
-        // when
-        val response =
-            client
-                .get()
-                .uri { it.path("/quotes").queryParam("author", "No One").build() }
-                .exchange()
-
-        // then
-        response
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .json("[]")
-    }
-
-    // ------------------------------------------------------------------
-    // GET /quotes
-    // ------------------------------------------------------------------
-    @Test
-    fun `GET all returns every quote`() {
-        runBlocking {
-            // given
-            val expectedCount = repo.count().block()!!
-
-            // when
-            val response = client.get().uri("/quotes").exchange()
-
-            // then
             response
                 .expectStatus()
                 .isOk
                 .expectBody()
                 .jsonPath("$.length()")
-                .isEqualTo(expectedCount.toInt())
+                .isEqualTo(1)
+                .jsonPath("$[0].quoteAuthor")
+                .isEqualTo("Oscar Wilde")
         }
-    }
 
-    @Test
-    fun `GET all returns empty array when collection empty`() {
-        runBlocking {
-            // given
-            repo.deleteAll().block()
+        @Test
+        fun `GET by author returns empty array when none match`() {
+            val response =
+                client
+                    .get()
+                    .uri {
+                        it.path("/quotes").queryParam("author", "No One").build()
+                    }.exchange()
 
-            // when
-            val response = client.get().uri("/quotes").exchange()
-
-            // then
             response
                 .expectStatus()
                 .isOk
                 .expectBody()
                 .json("[]")
+        }
+
+        @Test
+        fun `GET by author returns 400 when query param is missing`() {
+            val response = client.get().uri("/quotes?author=").exchange()
+
+            response.expectStatus().isBadRequest
+        }
+    }
+
+    @Nested
+    inner class GetAll {
+        @Test
+        fun `GET all returns every quote`() {
+            runBlocking {
+                val expectedCount = repo.count().block()!!
+
+                val response = client.get().uri("/quotes").exchange()
+
+                response
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .jsonPath("$.length()")
+                    .isEqualTo(expectedCount.toInt())
+            }
+        }
+
+        @Test
+        fun `GET all returns empty array when collection empty`() {
+            runBlocking {
+                repo.deleteAll().block()
+
+                val response = client.get().uri("/quotes").exchange()
+
+                response
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .json("[]")
+            }
         }
     }
 }
