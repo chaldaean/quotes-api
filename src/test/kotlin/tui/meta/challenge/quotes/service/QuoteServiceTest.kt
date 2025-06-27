@@ -23,7 +23,7 @@ import tui.meta.challenge.quotes.service.dto.QuoteDto
 @Suppress("ReactiveStreamsUnusedPublisher")
 class QuoteServiceTest {
     private val repo: QuoteRepository = mockk(relaxed = true)
-    private val service = QuoteService(repo)
+    private val service = QuoteServiceImpl(repo)
 
     @AfterEach
     fun tearDown() = clearAllMocks()
